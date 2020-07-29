@@ -1,0 +1,37 @@
+#+TITLE: Doom Config
+#+AUTHOR: Simon Christensen
+
+* General
+** User info
+#+BEGIN_SRC emacs-lisp
+(setq user-full-name "Simon Christensen"
+      user-mail-address "c3lphie@protonmail")
+#+END_SRC
+** UI
+*** Font
+#+BEGIN_SRC emacs-lisp
+(setq doom-font (font-spec :family "monospace" :size 15))
+#+END_SRC
+*** Theme
+#+BEGIN_SRC emacs-lisp
+(setq doom-theme 'doom-dracula)
+#+END_SRC
+*** Line Numbers
+#+BEGIN_SRC emacs-lisp
+(setq display-line-numbers-type t)
+#+END_SRC
+*** Transparency
+#+BEGIN_SRC emacs-lisp
+(set-frame-parameter (selected-frame) 'alpha '(100 .85))
+#+END_SRC
+
+* Org-mode
+** Misc
+#+BEGIN_SRC emacs-lisp
+(setq org-startup-with-inline-images t)
+#+END_SRC
+** Directory
+#+BEGIN_SRC emacs-lisp
+(setq org-directory "~/repositories/notes/")
+#+END_SRC
+
