@@ -1,0 +1,43 @@
+#+TITLE: My Dotfiles
+
+* Table of contents :toc:
+- [[#about-my-setup][About my setup]]
+  - [[#goals][Goals]]
+- [[#software][Software]]
+- [[#hardware][Hardware]]
+
+* About my setup
+I have for a long time wanted my own setup, that is exactly how I want it.
+And I think i'm getting closer to this goal.
+
+As of writing this README, most of my setup is based of Derek Taylors (DT) XMonad setup.
+I do intent to find my own way, but his dotfiles and videos are an amazing resource which I will build upon.
+
+** Goals
+- Minimalism (or atleast as close as possible)
+- Effeciency
+- As open as possible (Open source > Proprietary)
+
+* Software
+This is a list of the software is used in my setup
+
+| Category     | Software used |
+|--------------+---------------|
+| *OS*         | Void          |
+| *WM*         | XMonad        |
+| *Terminal*   | ST            |
+| *Editor*     | Doom Emacs    |
+| *Compositor* | Picom         |
+| *Lock*       | i3lock-fancy  |
+
+* Hardware
+I thought I might as well give some hardware specs.
+
+My laptop is a Lenovo ThinkPad P53
+
+| Processor     | Intel Core i7-9750H |
+| Memory        | 16 GB DDR4 2666 MHz |
+| 1. Hard Drive | 512 GB SSD          |
+| 2. Hard Drive | 512 GB SSD          |
+| Total space   | 1 TB                |
+| Screen        | 15,6" FHD           |
