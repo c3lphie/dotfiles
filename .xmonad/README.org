@@ -15,6 +15,7 @@ This is my configuration for my Xmonad setup. A lot, and I cannot express this e
 - [[#keybindings][Keybindings]]
 - [[#mousebindings][Mousebindings]]
 - [[#layouts][Layouts]]
+- [[#scratchpads][Scratchpads]]
 - [[#treeselect][TreeSelect]]
   - [[#treeselect-config][TreeSelect Config]]
   - [[#treeselect-menus][TreeSelect menus]]
@@ -40,12 +41,13 @@ import Data.Tree
 
 -- Hooks
 import XMonad.Hooks.ManageDocks (avoidStruts, docksEventHook, manageDocks, ToggleStruts(..))
-import XMonad.Hooks.DynamicLog (dynamicLogWithPP, wrap, xmobarPP, xmobarColor, shorten, PP(..))
+import XMonad.Hooks.DynamicLog (defaultPP, dynamicLogWithPP, wrap, xmobarPP, xmobarColor, shorten, PP(..))
 
 -- Util
 import XMonad.Util.EZConfig
 import XMonad.Util.Run (hPutStrLn, runProcessWithInput, safeSpawn, spawnPipe)
 import XMonad.Util.SpawnOnce
+import XMonad.Util.NamedScratchpad
 
 -- Prompt
 import XMonad.Prompt
@@ -163,6 +165,7 @@ myKeys =
 
     -- Open my preferred terminal
         , ("M-<Return>", spawn myTerminal)
+        , ("M-S-<Return>", namedScratchpadAction myScratchPads "terminal")
 
     -- Open my preferred texteditor
         , ("M-e", spawn myEditor)
@@ -187,6 +190,12 @@ myKeys =
 
     -- Layouts management
         , ("M-<Tab>", sendMessage NextLayout)
+
+    -- Multimedia keys
+        , ("<XF86AudioLowerVolume>", spawn "pulsemixer --change-volume -5")
+        , ("<XF86AudioMute>", spawn "pulsemixer --toggle-mute")
+        , ("<XF86AudioRaiseVolume>", spawn "pulsemixer --change-volume +5")
+        , ("<XF86Calculator>", namedScratchpadAction myScratchPads "calculator")
 
          ]
 #+END_SRC
@@ -237,6 +246,29 @@ myLayoutHook = avoidStruts myDefaultLayout
                     ||| noBorders tabs
 #+END_SRC
 
+* Scratchpads
+#+BEGIN_SRC haskell
+myScratchPads :: [NamedScratchpad]
+myScratchPads = [ NS "calculator" spawnCalc findCalc manageCalc,
+                  NS "terminal" spawnTerm findTerm manageTerm]
+  where
+    spawnTerm  = myTerminal ++ " -n scratchpad"
+    findTerm   = resource =? "scratchpad"
+    manageTerm = customFloating $ W.RationalRect l t w h
+                 where
+                   h = 0.9
+                   w = 0.9
+                   t = 0.95 -h
+                   l = 0.95 -w
+    spawnCalc  = myTerminal ++ " -n Calculator 'qalc'"
+    findCalc   = resource =? "Calculator"
+    manageCalc = customFloating $ W.RationalRect l t w h
+                 where
+                   h = 0.9
+                   w = 0.9
+                   t = 0.95 -h
+                   l = 0.95 -w
+#+END_SRC
 * TreeSelect
 ** TreeSelect Config
 #+BEGIN_SRC haskell
@@ -307,7 +339,7 @@ myManageHook = composeAll
     [ className =? "MPlayer"        --> doFloat
     , className =? "Gimp"           --> doFloat
     , resource  =? "desktop_window" --> doIgnore
-    , resource  =? "kdesktop"       --> doIgnore ]
+    , resource  =? "kdesktop"       --> doIgnore ] <+> namedScratchpadManageHook myScratchPads
 #+END_SRC
 
 ** Event Hooks
@@ -363,7 +395,8 @@ main = do
         logHook            = myLogHook <+> dynamicLogWithPP xmobarPP
         {
           ppOutput = \x -> hPutStrLn xmproc x
-        , ppCurrent = xmobarColor "#c3e88d" "" . wrap "[" "]" -- Current workspace in xmobar
+        , ppSort = fmap (namedScratchpadFilterOutWorkspace.) (ppSort defaultPP)
+        , ppCurrent = xmobarColor "#c3e88d" "" . wrap " [ " " ] " -- Current workspace in xmobar
         , ppVisible = xmobarColor "#c3e88d" ""                -- Visible but not current workspace
         , ppHidden = xmobarColor "#82AAFF" "" . wrap "*" ""   -- Hidden workspaces in xmobar
         , ppHiddenNoWindows = xmobarColor "#c792ea" ""        -- Hidden workspaces (no windows)
