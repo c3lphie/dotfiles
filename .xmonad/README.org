@@ -13,6 +13,8 @@ This is my configuration for my Xmonad setup. A lot, and I cannot express this e
   - [[#runixporn][r/unixporn]]
   - [[#other-variables][Other variables]]
 - [[#keybindings][Keybindings]]
+  - [[#basic-mappings][Basic mappings]]
+  - [[#the-spice-to-my-rice][The spice to my rice]]
 - [[#mousebindings][Mousebindings]]
 - [[#layouts][Layouts]]
 - [[#scratchpads][Scratchpads]]
@@ -139,6 +141,7 @@ myBrowser = "brave"
 Here is my key configuration, there is not really any philosophy applied at the moment.
 That will hopefully change as i use the system more.
 
+** Basic mappings
 | Key mapping       | Function                       |
 |-------------------+--------------------------------|
 | =Mod + Ctrl + r=  | Recompiles XMonad              |
@@ -151,7 +154,20 @@ That will hopefully change as i use the system more.
 | =Mod + d=         | Runs Dmenu                     |
 | =Mod + q=         | Kills currently focused window |
 | =Mod + m=         | Moves focus to master window   |
-| =Mod + j=         |                                |
+| =Mod + j=         | Moves focus down the stack     |
+| =Mod + k=         | Moves focus up the stack       |
+| =Mod + l=         | Increase master size           |
+| =Mod + h=         | Decrease master size           |
+| =Mod + J=         | Swap focused window down       |
+| =Mod + K=         | Swap focused window up         |
+| =Mod + Tab=       | Shift layout                   |
+
+** The spice to my rice
+| Key mapping           | Function                         |
+|-----------------------+----------------------------------|
+| =Calculator button=   | Opens scratchpad with calculator |
+| =Mod + Shift + Enter= | Opens terminal scratchpad        |
+
 
 #+BEGIN_SRC haskell
 myModMask       = mod4Mask
@@ -165,7 +181,10 @@ myKeys =
 
     -- Open my preferred terminal
         , ("M-<Return>", spawn myTerminal)
+
+    -- Scratchpads
         , ("M-S-<Return>", namedScratchpadAction myScratchPads "terminal")
+        , ("<XF86Calculator>", namedScratchpadAction myScratchPads "calculator")
 
     -- Open my preferred texteditor
         , ("M-e", spawn myEditor)
@@ -195,7 +214,6 @@ myKeys =
         , ("<XF86AudioLowerVolume>", spawn "pulsemixer --change-volume -5")
         , ("<XF86AudioMute>", spawn "pulsemixer --toggle-mute")
         , ("<XF86AudioRaiseVolume>", spawn "pulsemixer --change-volume +5")
-        , ("<XF86Calculator>", namedScratchpadAction myScratchPads "calculator")
 
          ]
 #+END_SRC

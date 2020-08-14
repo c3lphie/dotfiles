@@ -100,7 +100,10 @@ myKeys =
 
     -- Open my preferred terminal
         , ("M-<Return>", spawn myTerminal)
+
+    -- Scratchpads
         , ("M-S-<Return>", namedScratchpadAction myScratchPads "terminal")
+        , ("<XF86Calculator>", namedScratchpadAction myScratchPads "calculator")
 
     -- Open my preferred texteditor
         , ("M-e", spawn myEditor)
@@ -130,7 +133,6 @@ myKeys =
         , ("<XF86AudioLowerVolume>", spawn "pulsemixer --change-volume -5")
         , ("<XF86AudioMute>", spawn "pulsemixer --toggle-mute")
         , ("<XF86AudioRaiseVolume>", spawn "pulsemixer --change-volume +5")
-        , ("<XF86Calculator>", namedScratchpadAction myScratchPads "calculator")
 
          ]
 
