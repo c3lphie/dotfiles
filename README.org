@@ -23,11 +23,11 @@ This is a list of the software is used in my setup
 
 | Category     | Software used |
 |--------------+---------------|
-| *OS*         | Void          |
+| *OS*         | Arch-btw      |
 | *WM*         | XMonad        |
-| *Terminal*   | ST            |
+| *Terminal*   | kitty         |
 | *Editor*     | Doom Emacs    |
-| *Compositor* | Picom         |
+| *Compositor* | Picom-tryone  |
 | *Lock*       | i3lock-fancy  |
 
 * Hardware

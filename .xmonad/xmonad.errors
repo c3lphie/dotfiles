@@ -1,7 +1,7 @@
 
-xmonad.hs:304:70: warning: [-Wdeprecations]
+xmonad.hs:308:70: warning: [-Wdeprecations]
     In the use of ‘defaultPP’ (imported from XMonad.Hooks.DynamicLog):
     Deprecated: "Use def (from Data.Default, and re-exported by XMonad.Hooks.DynamicLog) instead."
     |
-304 |         , ppSort = fmap (namedScratchpadFilterOutWorkspace.) (ppSort defaultPP)
+308 |         , ppSort = fmap (namedScratchpadFilterOutWorkspace.) (ppSort defaultPP)
     |                                                                      ^^^^^^^^^

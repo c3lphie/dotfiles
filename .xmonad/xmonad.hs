@@ -37,7 +37,7 @@ import XMonad.Layout.ResizableTile
 import XMonad.Layout.Renamed
 import XMonad.Layout.NoBorders
 
-myTerminal      = "st"
+myTerminal      = "kitty"
 
 myFocusFollowsMouse :: Bool
 myFocusFollowsMouse = True
@@ -100,6 +100,7 @@ myKeys =
 
     -- Open my preferred terminal
         , ("M-<Return>", spawn myTerminal)
+        , ("M-r", spawn (myTerminal ++ " -e nnn"))
 
     -- Scratchpads
         , ("M-S-<Return>", namedScratchpadAction myScratchPads "terminal")
@@ -113,6 +114,7 @@ myKeys =
 
     -- Open browser
         , ("M-w", spawn myBrowser)
+        , ("M-S-w", spawn (myTerminal ++ " -e nmtui"))
 
     -- Run Prompt
         , ("M-d", spawn "dmenu_run")   -- Shell Prompt
@@ -133,6 +135,8 @@ myKeys =
         , ("<XF86AudioLowerVolume>", spawn "pulsemixer --change-volume -5")
         , ("<XF86AudioMute>", spawn "pulsemixer --toggle-mute")
         , ("<XF86AudioRaiseVolume>", spawn "pulsemixer --change-volume +5")
+
+        , ("<Print>", spawn "flameshot gui")
 
          ]
 
@@ -180,7 +184,7 @@ myScratchPads :: [NamedScratchpad]
 myScratchPads = [ NS "calculator" spawnCalc findCalc manageCalc,
                   NS "terminal" spawnTerm findTerm manageTerm]
   where
-    spawnTerm  = myTerminal ++ " -n scratchpad"
+    spawnTerm  = "st -n scratchpad"
     findTerm   = resource =? "scratchpad"
     manageTerm = customFloating $ W.RationalRect l t w h
                  where
@@ -188,7 +192,7 @@ myScratchPads = [ NS "calculator" spawnCalc findCalc manageCalc,
                    w = 0.9
                    t = 0.95 -h
                    l = 0.95 -w
-    spawnCalc  = myTerminal ++ " -n Calculator 'qalc'"
+    spawnCalc  = "st -n Calculator 'qalc'"
     findCalc   = resource =? "Calculator"
     manageCalc = customFloating $ W.RationalRect l t w h
                  where
