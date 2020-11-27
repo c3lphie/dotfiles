@@ -1,0 +1,10 @@
+#! /usr/bin/sh
+
+export SETUP="$HOME/repositories/ctf-setup"
+
+cp "$SETUP/attach.sh" .
+cp "$SETUP/connect.sh" .
+cp "$SETUP/exploit.py" .
+cp "$SETUP/setup.py" .
+cp "$SETUP/remote.sh" .
+
