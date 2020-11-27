@@ -24,7 +24,7 @@ This is a list of the software is used in my setup
 | Category     | Software used |
 |--------------+---------------|
 | *OS*         | Arch-btw      |
-| *WM*         | XMonad        |
+| *WM*         | dwm           |
 | *Terminal*   | kitty         |
 | *Editor*     | Doom Emacs    |
 | *Compositor* | Picom-tryone  |

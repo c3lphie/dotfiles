@@ -21,7 +21,7 @@
 #+END_SRC
 *** Transparency
 #+BEGIN_SRC emacs-lisp
-(set-frame-parameter (selected-frame) 'alpha '(100 .85))
+(set-frame-parameter (selected-frame) 'alpha '(100 . 100))
 #+END_SRC
 
 * Org-mode
@@ -29,6 +29,7 @@
 #+BEGIN_SRC emacs-lisp
 (setq org-startup-with-inline-images t)
 (setq org-export-coding-system 'utf-8)
+(setq org-hide-emphasis-markers t)
 #+END_SRC
 ** Directory
 #+BEGIN_SRC emacs-lisp

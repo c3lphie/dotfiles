@@ -7,10 +7,11 @@
 
 (setq display-line-numbers-type t)
 
-(set-frame-parameter (selected-frame) 'alpha '(100 .85))
+(set-frame-parameter (selected-frame) 'alpha '(100 . 100))
 
 (setq org-startup-with-inline-images t)
 (setq org-export-coding-system 'utf-8)
+(setq org-hide-emphasis-markers t)
 
 (setq org-directory "~/repositories/notes/")
 
@@ -43,15 +44,3 @@
   (org-refile nil nil (list headline file nil pos)))
 (switch-to-buffer (current-buffer))
 )
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages '(org-plus-contrib)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
