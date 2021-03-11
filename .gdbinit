@@ -4,7 +4,7 @@ source /usr/share/pwndbg/gdbinit.py
 # import splitmind settings
 # in this file you can change window sizes and much more
 # https://github.com/jerdna-regeiz/splitmind for more info
-source /home/c3lphie/repositories/splitmind/setupSplit.py
+# source /home/c3lphie/repositories/splitmind/setupSplit.py
 
 #pwndbg settings
 # set context-code-lines 10
