@@ -1,0 +1,862 @@
+#+title: My Emacs config
+#+author: c3lphie
+#+property: header-args: :tangle yes :exports code :results silent
+* Config
+** About this
+This is MY Emacs configuration!
+But it should be noted i have taken inspiration from other configs.
+
+** Packages
+*** Package archives
+#+begin_src emacs-lisp
+  (require 'package)
+  (add-to-list 'package-archives
+               '("melpa" . "http://melpa.org/packages/") t)
+  (add-to-list 'package-archives
+               '("org" . "http://orgmode.org/elpa/") t)
+  (package-initialize)
+#+end_src
+*** Use-package
+#+begin_src emacs-lisp
+  (eval-when-compile
+    (require 'use-package))
+
+  (setq use-package-always-ensure t)
+#+end_src
+
+** General setting
+*** Defaults
+credit: https://github.com/angrybacon/dotemacs/blob/master/dotemacs.org#better-defaults
+#+begin_src emacs-lisp
+  (setq-default
+   ad-redefinition-action 'accept
+   auto-save-list-file-prefix nil
+   cursor-in-non-selected-windows nil
+   fill-column 80
+   gc-cons-threshold (* 8 1024 1024)
+   indent-tabs-mode nil
+   inhibit-startup-screen t
+   initial-scratch-message ""
+   scroll-conservatively 101
+   scroll-margin 2
+   select-enable-clipboard t
+   sentence-end-double-space nil
+   show-help-function nil
+   tab-width 4
+   uniquify-buffer-name-style 'forward
+   warning-minimum-level :error
+   window-combination-resize t
+   x-stretch-cursor t)
+  (blink-cursor-mode 0)
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+  (fset 'yes-or-no-p 'y-or-n-p)
+  (global-subword-mode 1)
+  (put 'downcase-region 'disabled nil)
+  (put 'upcase-region 'disabled nil)
+  (set-default-coding-systems 'utf-8)
+#+end_src
+*** Server mode handling
+    #+begin_src emacs-lisp
+      (defun signal-restart-server ()
+        "Handler for SIGUSR1 signal, to (re)start an emacs server.
+
+      Can be tested from within emacs with:
+        (signal-process (emacs-pid) 'sigusr1)
+
+      or from command line with:
+      $ kill -USR1 <emacs-pid>
+      $ emacsclient -c"
+        (interactive)
+        (server-force-delete)
+        (server-start))
+      (define-key special-event-map [sigusr1] 'signal-restart-server)
+    #+end_src
+*** Disabling custom.el
+credit: https://github.com/angrybacon/dotemacs/blob/master/dotemacs.org#better-defaults
+
+To minimize clutter in init.el send all customize setting to /dev/null
+#+begin_src emacs-lisp
+  (setq custom-file null-device)
+#+end_src
+*** Garbage collect on focus-out
+#+begin_src emacs-lisp
+  (add-function :after after-focus-change-function
+    (defun me/garbage-collect-maybe ()
+      (unless (frame-focus-state)
+        (garbage-collect))))
+#+end_src
+*** Minor indentation rules
+#+begin_src emacs-lisp
+  (put 'add-function 'lisp-indent-function 2)
+  (put 'advice-add 'list-indent-function 2)
+  (put 'custom-theme-set-faces 'lisp-indent-function 'defun)
+  (put 'evil-define-key* 'lisp-indent-function 'defun)
+  (put 'plist-put 'lisp-indent-function 2)
+#+end_src
+*** Theming
+#+begin_src emacs-lisp
+  (require 'color-theme)
+  (use-package color-theme-sanityinc-tomorrow
+    :config
+    (load-theme 'sanityinc-tomorrow-night t))
+#+end_src
+
+Pretty fringe bitmaps
+#+begin_src emacs-lisp
+  (define-fringe-bitmap 'left-curly-arrow [255] nil nil '(center t))
+#+end_src
+**** Font
+#+begin_src emacs-lisp
+  (defvar me/font-default "monospace" "Font for default text")
+  (defvar me/font-heading "sans-serif" "Font for headings")
+  (defvar me/font-size-default 120 "Font size for default text")
+  (defvar me/font-size-heading 1.6 "Font size for headings")
+  (defvar me/font-size-large 1.2 "Font size for larger text")
+  (defvar me/font-size-small .9 "Font size for smaller text")
+#+end_src
+**** Modeline
+#+begin_src emacs-lisp
+  (use-package doom-modeline
+    :init (doom-modeline-mode 1)
+    :config
+    (setq doom-modeline-icon t))
+#+end_src
+**** Dashboard
+#+begin_src emacs-lisp
+  (use-package dashboard
+    :config
+    (setq dashboard-banner-logo-title "Welcome c3lphie"
+          dashboard-startup-banner "~/.emacs.d/ascii.txt")
+    (setq dashboard-set-heading-icons t
+          dashboard-set-file-icons t
+          dashboard-center-content t)
+    (setq dashboard-items '((bookmarks . 5)
+                            (agenda . 5)
+                            (projects . 5)
+                            (recents . 5)))
+    (dashboard-setup-startup-hook))
+#+end_src
+**** Page break lines
+#+begin_src emacs-lispk
+  (use-package page-break-lines)
+#+end_src
+**** Solaire mode
+Distinguish between file-visiting windows 
+#+begin_src emacs-lisp
+  (use-package solaire-mode
+    :hook (change-major-mode . turn-on-solaire-mode)
+    :hook (after-revert . turn-on-solaire-mode)
+    :hook (ediff-prepare-buffer . solaire-mode)
+    :hook (minibuffer-setup . solaire-mode-in-minibuffer)
+    :config
+
+    (solaire-global-mode +1))
+#+end_src
+**** All the Icons
+#+begin_src emacs-lisp
+  (use-package all-the-icons)
+  (use-package all-the-icons-ivy-rich
+    :init (all-the-icons-ivy-rich-mode 1))
+#+end_src
+**** Beacon
+Highlight cursor on pane switch
+#+begin_src emacs-lisp
+  (use-package beacon
+    :config
+    (beacon-mode 1))
+#+end_src
+*** Project management
+For project management i have chosen Projectile, not any particular reason, so its subject to change.
+#+begin_src emacs-lisp
+  (use-package projectile
+    :config
+    (projectile-mode +1)
+    (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
+#+end_src
+
+**** Org integration
+#+begin_src emacs-lisp
+  (use-package org-projectile
+    :bind (("C-c n p" . org-projectile-project-todo-completing-read)
+           ("C-c c" . org-capture))
+    :config
+    (progn
+      (setq org-projectile-projects-file
+            "~/Dropbox/org/projects.org")
+      (setq org-agenda-files (append org-agenda-files (org-projectile-todo-files)))
+      (push (org-projectile-project-todo-entry) org-capture-templates))
+    :ensure t)
+#+end_src
+*** Which key
+#+begin_src emacs-lisp
+  (use-package which-key
+    :config
+    (which-key-mode 1))
+#+end_src
+*** Movement
+As a former vim user, i can't thank ~evil~ enough for being a thing, so ofc i use that package for moving around.
+**** Evil
+#+begin_src emacs-lisp
+  (use-package evil
+    :init
+    (setq evil-want-keybinding nil
+          evil-want-integration t)
+    :config
+    (evil-mode 1))
+#+end_src
+***** And the collection
+#+begin_src emacs-lisp
+  (use-package evil-collection
+    :after evil
+    :config
+    (setq evil-collection-setup-minibuffer t)
+    (evil-collection-init))
+#+end_src
+*** Ivy
+#+begin_src emacs-lisp
+  (use-package ivy
+    :defer 0.1
+    :diminish
+    :bind (("C-c C-r" . ivy-resume)
+           ("C-x B" . ivy-switch-buffer-other-window))
+    :custom
+    (ivy-count-format "(%d/%d) ")
+    (ivy-use-virtual-buffers t)
+    :config (ivy-mode))
+#+end_src
+**** Ivy rich
+#+begin_src emacs-lisp
+  (use-package ivy-rich
+    :hook (ivy-mode . ivy-rich-mode)
+    :custom (ivy-rich-path-style 'abbrev)
+    :config
+    (ivy-rich-modify-columns
+     'ivy-switch-buffer
+     '((ivy-rich-switch-buffer-size (:align right))
+       (ivy-rich-switch-buffer-major-mode (:width 20 :face error)))))
+#+end_src
+**** Counsel
+#+begin_src emacs-lisp
+  (use-package counsel
+    :after ivy
+    :config (counsel-mode))
+#+end_src
+**** Swiper
+#+begin_src emacs-lisp
+  (use-package swiper
+    :after ivy
+    :bind (("C-s" . swiper)
+           ("C-r" . swiper)))
+#+end_src
+*** Treemacs
+Some mgiht argue that having a filebrowser like treemacs is unnessecary.
+But i think it gives a better overview of the project files.
+#+begin_src emacs-lisp
+  (use-package treemacs
+    :ensure t
+    :defer t
+    :init
+    (with-eval-after-load 'winum
+      (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+    :config
+    (progn
+      (setq treemacs-collapse-dirs                 (if treemacs-python-executable 3 0)
+            treemacs-deferred-git-apply-delay      0.5
+            treemacs-directory-name-transformer    #'identity
+            treemacs-display-in-side-window        t
+            treemacs-eldoc-display                 t
+            treemacs-file-event-delay              5000
+            treemacs-file-extension-regex          treemacs-last-period-regex-value
+            treemacs-file-follow-delay             0.2
+            treemacs-file-name-transformer         #'identity
+            treemacs-follow-after-init             t
+            treemacs-git-command-pipe              ""
+            treemacs-goto-tag-strategy             'refetch-index
+            treemacs-indentation                   2
+            treemacs-indentation-string            " "
+            treemacs-is-never-other-window         nil
+            treemacs-max-git-entries               5000
+            treemacs-missing-project-action        'ask
+            treemacs-move-forward-on-expand        nil
+            treemacs-no-png-images                 nil
+            treemacs-no-delete-other-windows       t
+            treemacs-project-follow-cleanup        nil
+            treemacs-persist-file                  (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+            treemacs-position                      'left
+            treemacs-read-string-input             'from-child-frame
+            treemacs-recenter-distance             0.1
+            treemacs-recenter-after-file-follow    nil
+            treemacs-recenter-after-tag-follow     nil
+            treemacs-recenter-after-project-jump   'always
+            treemacs-recenter-after-project-expand 'on-distance
+            treemacs-show-cursor                   nil
+            treemacs-show-hidden-files             t
+            treemacs-silent-filewatch              nil
+            treemacs-silent-refresh                nil
+            treemacs-sorting                       'alphabetic-asc
+            treemacs-space-between-root-nodes      t
+            treemacs-tag-follow-cleanup            t
+            treemacs-tag-follow-delay              1.5
+            treemacs-user-mode-line-format         nil
+            treemacs-user-header-line-format       nil
+            treemacs-width                         35
+            treemacs-workspace-switch-cleanup      nil)
+
+      ;; The default width and height of the icons is 22 pixels. If you are
+      ;; using a Hi-DPI display, uncomment this to double the icon size.
+      ;;(treemacs-resize-icons 44)
+
+      (treemacs-follow-mode t)
+      (treemacs-filewatch-mode t)
+      (treemacs-fringe-indicator-mode 'always)
+      (pcase (cons (not (null (executable-find "git")))
+                   (not (null treemacs-python-executable)))
+        (`(t . t)
+         (treemacs-git-mode 'deferred))
+        (`(t . _)
+         (treemacs-git-mode 'simple))))
+    :bind
+    (:map global-map
+          ("M-0"       . treemacs-select-window)
+          ("C-x t 1"   . treemacs-delete-other-windows)
+          ("C-x t t"   . treemacs)
+          ("C-x t B"   . treemacs-bookmark)
+          ("C-x t C-t" . treemacs-find-file)
+          ("C-x t M-t" . treemacs-find-tag)))
+#+end_src
+**** Evil
+#+begin_src emacs-lisp
+  (use-package treemacs-evil
+    :after (treemacs evil))
+#+end_src
+**** Projectile integration
+#+begin_src emacs-lisp
+  (use-package treemacs-projectile
+    :after (treemacs projectile))
+#+end_src
+
+** Programming
+*** General
+**** Company
+#+begin_src emacs-lisp
+  (use-package company
+    :diminish company-mode
+    :init
+    (global-company-mode)
+    :config
+    (setq company-backends
+          '((company-files
+             company-keywords
+             company-capf)
+            (company-abbrev company-dabbrev))))
+#+end_src
+***** Statistics
+#+begin_src emacs-lisp
+  (use-package company-statistics
+    :init
+    (company-statistics-mode))
+#+end_src
+***** Try hard
+#+begin_src emacs-lisp
+  (use-package company-try-hard
+    :bind
+    (("C-<tab>" . company-try-hard)
+     :map company-active-map
+     ("C-<tab>" . company-try-hard)))
+#+end_src
+***** Quickhelp
+#+begin_src emacs-lisp
+  (use-package company-quickhelp
+    :config
+    (setq company-quickhelp-delay 0.5)
+    (company-quickhelp-mode)
+    (eval-after-load 'company
+    '(define-key company-active-map (kbd "C-c h") #'company-quickhelp-manual-begin)))
+#+end_src
+
+Quickhelp depends on pos-tip found here: [[https://github.com/pitkali/pos-tip/][pitkali/pos-tip]]
+#+begin_src emacs-lisp
+  (require 'pos-tip)
+  (setq pos-tip-background-color "#373b41"
+        pos-tip-foreground-color "#b5bd68")
+#+end_src
+**** Snippets
+I use yas-snippets for snippet management i mainly use my own just because i don't want to bother with learning a bunch of new ones.
+#+begin_src emacs-lisp
+  (use-package yasnippet
+    :config
+    (yas-global-mode 1))
+#+end_src
+***** Ivy yasnippet
+#+begin_src emacs-lisp
+  (use-package ivy-yasnippet
+    :bind ("C-c i y" . ivy-yasnippet))
+#+end_src
+
+*** Languages
+**** Prog-mode
+#+begin_src emacs-lisp
+  (defun my/prog-mode-hook ()
+    "All my general modes for programming"
+    (rainbow-delimiters-mode)
+    (linum-relative-mode)
+    (electric-pair-mode))
+
+  (add-hook 'prog-mode-hook 'my/prog-mode-hook)
+#+end_src
+**** Python
+#+begin_src emacs-lisp
+  (use-package python-black)
+  (use-package python-docstring)
+  (use-package py-isort)
+  (use-package company-jedi)
+  (use-package pyenv-mode)
+  (use-package pyenv-mode-auto)
+
+
+  (defun my/python-mode-hook ()
+    "All things related to python"
+    (python-black-on-save-mode)
+    (python-docstring-mode)
+    (py-isort-before-save)
+    (pyenv-mode)
+    (add-to-list 'company-backends 'company-jedi))
+
+  (add-hook 'python-mode-hook 'my/python-mode-hook)
+#+end_src
+
+** Org mode
+*** Org defaults
+#+begin_src emacs-lisp
+  (use-package org
+    :config
+    (setq org-startup-with-inline-image t
+          org-export-coding-system 'utf-8
+          org-hide-emphasis-markers t
+          org-startup-indented t
+          org-directory me/org-dir)
+    (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0)))
+#+end_src
+
+#+begin_src emacs-lisp
+  (defvar me/org-dir "~/Dropbox/org")
+#+end_src
+*** Looks
+#+begin_src emacs-lisp
+  (use-package org-superstar
+    :hook (org-mode . org-superstar-mode))
+#+end_src
+*** Export
+**** Export backends
+#+begin_src emacs-lisp
+  (require 'ox-md) ;; Markdown for when Org isn't welcome
+#+end_src
+**** Latex
+#+begin_src emacs-lisp
+  (setq org-latex-pdf-process
+        '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+          "bibtex %b"
+          "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+          "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+  (setq org-latex-logfiles-extensions (quote ("lof" "lot" "tex" "aux" "idx" "log" "out" "toc" "nav" "snm" "vrb" "dvi" "fdb_latexmk" "blg" "brf" "fls" "entoc" "ps" "spl" "bbl" "pygtex" "pygstyle")))
+#+end_src
+**** Org static blog
+This is the package i have decided to use for my non-bloated blog [[https://c3lphie.com]].
+#+begin_src emacs-lisp
+  (use-package org-static-blog
+    :config
+    (setq org-static-blog-publish-title "C3lphie blogs"
+          org-static-blog-publish-url "https://c3lphie.com"
+          org-static-blog-publish-directory "~/repositories/blog/"
+          org-static-blog-posts-directory "~/repositories/blog/posts/"
+          org-static-blog-drafts-directory "~/repositories/blog/drafts/"
+          org-static-blog-enable-tags t)
+
+
+    (setq org-static-blog-page-header
+          "<meta name=\"author\" content=\"c3lphie\">
+  <meta name=\"referrer\" content=\"no-referrer\">
+  <link href= \"static/style.css\" rel=\"stylesheet\" type=\"text/css\" />
+  <link rel=\"icon\" href=\"static/favicon.ico\">")
+
+    (setq org-static-blog-page-preamble
+          "<div class=\"header\">
+  <a href=\"https://c3lphie.com\">Home</a>
+  </div>")
+
+
+    (setq org-static-blog-page-postamble
+          "<div id=\"archive\">
+  <a href=\"https://c3lphie.com/archive.html\">Other posts</a>
+  </div>")
+
+    (setq org-static-blog-index-front-matter
+          "<h1> Welcome to my humble little place on the internet </h1>\n"))
+#+end_src
+*** Babel
+#+begin_src emacs-lisp
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((gnuplot . t)
+     (java . t)
+     (plantuml . t)
+     (matlab . t)))
+#+end_src
+**** Plantuml
+#+begin_src emacs-lisp
+  (setq plantuml-executable-path "/usr/bin/plantuml"
+        plantuml-default-exec-mode 'executable)
+#+end_src
+
+*** Agenda
+#+begin_src emacs-lisp
+  (global-set-key "\C-ca" 'org-agenda)
+  (setq org-agenda-files (list "~/Dropbox/org"
+                               "~/Dropbox/org/Projekter"))
+#+end_src
+
+**** Super agenda
+#+begin_src emacs-lisp
+  (use-package org-super-agenda
+    :config
+    (setq org-agenda-custom-commands
+          '(("a" "Agenda simple"
+             ((agenda "" ((org-agenda-span 'day)
+                          (org-super-agenda-groups
+                           '((:name "Agenda"
+                                    :time-grid t
+                                    :order 1)
+                             (:name "Lektier"
+                                    :category "Lektier"
+                                    :deadline t
+                                    :order 3)
+                             (:name "Next"
+                                    :todo "NEXT"
+                                    :order 2)))))))
+            ("w" "Weekly Agenda"
+             ((agenda "" ((org-agenda-span 7)
+                          (org-super-agenda-groups
+                           '((:auto-category)
+                             ))))))
+            ("o" "Daily Agenda and Todo"
+             ((agenda "" ((org-agenda-span 'day)
+                          (org-super-agenda-groups
+                           '((:name "Tidsplan"
+                                    :time-grid t
+                                    :date today
+                                    :scheduled today
+                                    :order 1)))))
+              (alltodo "" ((org-agenda-overriding-header "")
+                           (org-super-agenda-groups
+                            '((:name "Næste"
+                                     :todo "NEXT"
+                                     :order 1)
+                              (:name "Refile"
+                                     :tag "REFILE"
+                                     :order 2)
+                              (:name "Vigtig"
+                                     :priority "A"
+                                     :order 1)
+                              (:name "Todo"
+                                     :category "Tasks"
+                                     :order 3)
+                              (:name "Møder"
+                                     :todo "MEETING"
+                                     :order 10)
+                              (:name "Lektier"
+                                     :category "Lektie"
+                                     :order 6)
+                              (:name "Projekter"
+                                     :tag "project"
+                                     :order 40)
+                              (:name "Kurser"
+                                     :tag "course"
+                                     :order 40
+                                     )
+                              (:name "Events"
+                                     :category "Events"
+                                     :order 30)
+                              ))))))))
+    (org-super-agenda-mode))
+#+end_src
+*** Capture
+#+begin_src emacs-lisp
+  (global-set-key "\C-cc" 'org-capture)
+  (setq org-capture-templates
+        '(("t" "Todo")
+          ("tt" "Todo" entry (file "~/Dropbox/org/refile.org")
+           "* TODO %? \n")
+          ("tl" "Todo link" entry (file "~/Dropbox/org/refile.org")
+           "* TODO %A \n" :immediate-finish t)
+          ("tc" "Todo Clipboard Link" entry (file "~/Dropbox/org/refile.org")
+           "* TODO [[%x][%^{Description}]] ":immediate-finish t)
+          ("td" "Todo deadline" entry (file "~/Dropbox/org/refile.org")
+           "* TODO %?\n DEADLINE:%^{Deadline}T")
+          ("ts" "Todo scheduled" entry (file "~/Dropbox/org/refile.org")
+           "* TODO %?\n SCHEDULED:%^{Scheduled}T")
+          ("e" "Event" entry (file "~/Dropbox/org/refile.org")
+           "* TODO Event: %?\n%^{Hvornår?}T")
+          ("i" "Idé" entry (file "~/Dropbox/org/refile.org")
+           "* IDEA %?\n %U")
+          ("u" "Uni")
+          ("ue" "Eksamen" entry (file "~/Dropbox/org/refile.org")
+           "* EKS [#A] %?\nSCHEDULED: %^T")
+          ("um" "Uni Møde" entry (file "~/Dropbox/org/refile.org")
+           "* MEETING med %^{Hvem?} \nSCHEDULED:%^{Hvornår?}T\n")
+          ("uh" "Uni Lektie" entry (file "~/Dropbox/org/refile.org")
+           "* TODO [#B] Lektie:%? :%^{Fag|Mat|SSU|ComNet}:\nDEADLINE: %^{Hvornår}T")
+          ("v" "Vane" entry (file "~/Dropbox/org/refile.org")
+           "* HABIT %?\n SCHEDULED:%^{Scheduled}T\n :PROPERTIES:\n :STYLE: habit\n :END:")
+          ("m" "Mail" entry (file "~/Dropbox/org/refile.org")
+           "* TODO [#A] Besvar: %^{Mail title} fra %^{Sender}\n %U")))
+#+end_src
+*** Todo
+#+begin_src emacs-lisp
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d@)" "CANCELLED(c@)")
+          (sequence "[ ](T)" "[-](S)" "|" "[X](D)")
+          (type "EKS" "IDEA" "HABIT" "MEETING" "|" "DONE(@)")))
+  (setq org-enforce-todo-dependencies t
+        org-enforce-todo-checkbox-dependencies t)
+#+end_src
+**** Helpers
+#+begin_src emacs-lisp
+  (defun org-summary-todo (n-done n-not-done)
+    "Switch entry to DONE when all subentries are done, to TODO otherwise."
+    (let (org-log-done org-log-states) ; Turn off logging
+      (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
+  (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
+#+end_src
+**** Org edna
+THIS IS NOT USED TO IT'S FULL POTENTIAL YET!
+#+begin_src emacs-lisp
+  (use-package org-edna
+    :config
+    (org-edna-mode))
+#+end_src
+*** Refiling
+#+begin_src emacs-lisp
+  (setq org-refile-targets
+        '((nil :maxlevel . 3)
+          ("~/Dropbox/org/personal.org" :maxlevel . 3)
+          ("~/Dropbox/org/projects.org" :maxlevel . 3)))
+#+end_src
+*** Note taking
+All packages and settings here relates to my note taking flow and system. I won't make any promises as to it will work for you, but it works for me.
+**** Roam
+I use org-roam(it's based on the [[https://zettelkasten.de/][zettelkasten method]]) as my note taking system, the way everything chains together makes it easier to see how things relate to each other.
+It has helped me a lot when studying up to exams!
+#+begin_src emacs-lisp
+  (use-package org-roam
+        :ensure t
+        :hook
+        (after-init . org-roam-mode)
+        :custom
+        (org-roam-directory "~/Dropbox/org/notes")
+        :bind (:map org-roam-mode-map
+                (("C-c n l" . org-roam)
+                 ("C-c n f" . org-roam-find-file)
+                 ("C-c n g" . org-roam-graph))
+                :map org-mode-map
+                (("C-c n i" . org-roam-insert))
+                (("C-c n I" . org-roam-insert-immediate)))
+        :config
+        (setq org-roam-completion-everywhere t)
+        (setq org-roam-capture-templates
+              '(("d" "default" plain (function org-roam--capture-get-point)
+                 "* %?"
+                 :file-name "%<%Y%m%d%H%M%S>-${slug}"
+                 :head "#+startup: latexpreview
+  ,#+ROAM_ALIAS:
+  ,#+ROAM_TAGS:
+  ,#+CREATED: %u
+  ,#+title: ${title}\n"))))
+#+end_src
+I also use it in my [[*Bibliography related][bibliography setup]].
+***** Server
+#+begin_src emacs-lisp
+  (use-package org-roam-server
+    :ensure t
+    :config
+    (setq org-roam-server-host "127.0.0.1"
+          org-roam-server-port 8080
+          org-roam-server-authenticate nil
+          org-roam-server-export-inline-images t
+          org-roam-server-serve-files nil
+          org-roam-server-served-file-extensions '("pdf" "mp4" "ogv")
+          org-roam-server-network-poll t
+          org-roam-server-network-arrows nil
+          org-roam-server-network-label-truncate t
+          org-roam-server-network-label-truncate-length 60
+          org-roam-server-network-label-wrap-length 20))
+#+end_src
+
+**** Bibliography related
+All of the things that are related to my bibliography setup, which uses zotero to easily get articles with citekey and moving it to my dropbox.
+All of this information gets exported to a .bib file that can be used by latex, ~org-ref~ and overleaf(needed for cooperation on projects at university).
+It pretty much the standard setup for ~org-roam-bibtex~, so i can't explain some of the things.
+***** Org roam bibtex
+#+begin_src emacs-lisp
+  (use-package org-roam-bibtex
+    :after org-roam
+    :hook (org-roam-mode . org-roam-bibtex-mode)
+    :config
+    (setq orb-note-actions-interface 'ivy)
+    (setq orb-preformat-keywords
+          '("citekey" "title" "url" "file" "author-or-editor" "keywords")
+          orb-process-file-keyword t
+          orb-file-field-extensions '("pdf"))
+    (setq orb-templates
+          '(("r" "ref" plain (function org-roam-capture--get-point)
+             ""
+             :file-name "%<%Y%m%d%H%M%S>-${slug}"
+             :head "#+startup: latexpreview
+  ,#+ROAM_ALIAS:
+  ,#+ROAM_TAGS: bibtex
+  ,#+CREATED: %u
+  ,#+ROAM_KEY: ${ref}
+  ,#+title: ${citekey}: ${title}
+
+  ,* ${title}
+  :PROPERTIES:
+  :Custom_ID: ${citekey}
+  :AUTHOR: ${author-or-editor}
+  :URL: ${url}
+  :NOTER_DOCUMENT: ${file}
+  :NOTER_PAGE:
+  :END:"))))
+#+end_src
+
+***** Ivy bibtex
+#+begin_src emacs-lisp
+  (use-package ivy-bibtex
+    :bind ("C-c i b" . ivy-bibtex)
+    :config
+    (setq bibtex-completion-bibliography '("~/Dropbox/org/bibliography/references.bib")
+          bibtex-completion-library-path "~/Dropbox/org/bibliography/bibtex-pdfs"
+          bibtex-completion-notes-path "~/Dropbox/org/notes"
+          bibtex-completion-pdf-field "file"
+          bibtex-completion-notes-template-multiple-files
+          (concat
+           "#+startup: latexpreview\n"
+           "#+ROAM_ALIAS:\n"
+           "#+ROAM_TAGS:\n"
+           "#+CREATED: %u\n"
+           "#+ROAM_KEY: cite:${=key=}\n"
+           "#+title: ${title}\n"
+           "* TODO Notes\n"
+           ":PROPERTIES:\n"
+           ":Custom_ID: ${=key=}\n"
+           ":AUTHOR: ${author-abbrev}\n"
+           ":JOURNAL: ${journaltitle}\n"
+           ":DATE: ${date}\n"
+           ":YEAR: ${year}\n"
+           ":DOI: ${doi}\n"
+           ":URL: ${url}\n"
+           ":END:\n\n")))
+#+end_src
+
+***** Org ref
+#+begin_src emacs-lisp
+  (use-package org-ref
+    :config
+    (setq bibtex-dialect 'biblatex)
+    (setq org-ref-default-bibliography '("~/Dropbox/org/bibliography/references.bib")
+          org-ref-pdf-directory "~/Dropbox/org/bibliography/bibtex-pdfs/"
+          org-ref-competion-library 'org-ref-ivy-cite
+          org-ref-get-pdf-filename-function 'org-ref-get-pdf-filname-helm-bibtex
+          org-ref-bibliography-notes (concat "~/Dropbox/org/notes/bibnotes.org")
+          org-ref-note-title-format "* TODO %y - %t\n:PROPERTIES:\n:Custom_ID: %k\n:ROAM_KEY: cite:%k\n:AUTHOR: %9a\n:JOURNAL: %j\n:YEAR: %y\n:VOLUME %v\n:PAGES: %p\n:DOI: %D\n:URL %U\n:END\n\n"
+          org-ref-notes-directory "~/Dropbox/org/notes"
+          org-ref-notes-functions 'orb-edit-notes))
+#+end_src
+
+***** Reftex
+This is one of the things i haven't bothered to read about yet.
+But I know it has something to do with references.
+#+begin_src emacs-lisp
+  (use-package reftex
+    :commands turn-on-reftex
+    :init
+    (progn
+      (setq reftex-default-bibliography '("~/Dropbox/org/bibliography/references.bib"))
+      (setq reftex-plug-intoAUCTex t)))
+#+end_src
+
+***** Org noter
+A tool for better notetaking from pdfs.
+#+begin_src emacs-lisp
+  (use-package org-noter
+    :after (:any org pdf-view)
+    :config
+    (setq org-noter-notes-window-location 'other-frame
+          org-noter-always-create-frame nil
+          org-noter-hide-other nil
+          org-noter-notes-search-path (list "~/Dropbox/org/notes/"))
+    (require 'org-noter-pdftools))
+#+end_src
+
+****** Org pdftools
+#+begin_src emacs-lisp
+  (use-package org-pdftools
+    :hook (org-mode . org-pdftools-setup-link))
+#+end_src
+
+****** Org noter pdftools
+#+begin_src emacs-lisp
+  (use-package org-noter-pdftools
+    :after org-noter
+    :config
+    ;; Add a function to ensure precise note is inserted
+    (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
+      (interactive "P")
+      (org-noter--with-valid-session
+       (let ((org-noter-insert-note-no-questions (if toggle-no-questions
+                                                     (not org-noter-insert-note-no-questions)
+                                                   org-noter-insert-note-no-questions))
+             (org-pdftools-use-isearch-link t)
+             (org-pdftools-use-freestyle-annot t))
+         (org-noter-insert-note (org-noter--get-precise-info)))))
+
+    ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
+    (defun org-noter-set-start-location (&optional arg)
+      "When opening a session with this document, go to the current location.
+  With a prefix ARG, remove start location."
+      (interactive "P")
+      (org-noter--with-valid-session
+       (let ((inhibit-read-only t)
+             (ast (org-noter--parse-root))
+             (location (org-noter--doc-approx-location (when (called-interactively-p 'any) 'interactive))))
+         (with-current-buffer (org-noter--session-notes-buffer session)
+           (org-with-wide-buffer
+            (goto-char (org-element-property :begin ast))
+            (if arg
+                (org-entry-delete nil org-noter-property-note-location)
+              (org-entry-put nil org-noter-property-note-location
+                             (org-noter--pretty-print-location location))))))))
+    (with-eval-after-load 'pdf-annot
+      (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
+#+end_src
+*** Misc
+**** Org wc
+#+begin_src emacs-lisp
+  (use-package org-wc
+    :after org)
+#+end_src
+
+** Not much (Email)
+#+begin_src emacs-lisp
+  (autoload 'notmuch "notmuch" "notmuch mail" t)
+#+end_src
+*** Saved searches
+#+begin_src emacs-lisp
+  (setq notmuch-saved-searches
+        '((:key "i" :name "Inbox All" :query "tag:inbox" :sort-order "newest-first")
+          (:key "u" :name "Uni inbox" :query "tag:inbox and tag:uni" :sort-order "newest-first")
+          (:key "U" :name "Uni new" :query "tag:unread and tag:uni" :sort-order "newest-fisrt")
+          (:key "p" :name "Proton inbox" :query "tag:inbox and tag:proton" :sort-order "newest-first")
+          (:key "P" :name "Proton new" :query "tag:unread and tag:proton" :sort-order "newest-fisrt")))
+#+end_src
+
